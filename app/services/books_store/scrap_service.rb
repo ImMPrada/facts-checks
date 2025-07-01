@@ -1,0 +1,82 @@
+require "open-uri"
+
+module BooksStore
+  class ScrapService
+    RATING_MAP = {
+      "One" => 1,
+      "Two" => 2,
+      "Three" => 3,
+      "Four" => 4,
+      "Five" => 5
+    }
+
+    attr_reader :errors
+
+    # https://books.toscrape.com/catalogue/
+    def initialize(base_url)
+      @base_url = base_url
+      @errors = {}
+    end
+
+    def run
+      books_details = []
+
+      books_details_links = list_all_books_links
+      books_details_links.each do |link|
+        book_details = get_book_details(link)
+        puts book_details
+        books_details << book_details
+      rescue => e
+        errors[link] = e.message
+      end
+
+      books_details
+    end
+
+    private
+
+    attr_reader :base_url
+
+    def total_pages
+      return @total_pages if @total_pages
+
+      pages = 0
+      doc = Nokogiri::HTML(URI.open("#{base_url}/catalogue/page-1.html"))
+      doc.css("ul.pager li.current").each do |element|
+        pages = element.text.split("of ").last.to_i
+      end
+
+      @total_pages = pages
+    end
+
+    def list_all_books_links
+      (1..total_pages).map do |page|
+        get_page_links(page)
+      end.flatten
+    end
+
+    def get_page_links(page)
+      puts "Getting page #{page} links"
+      url ="#{base_url}/catalogue/page-#{page}.html"
+      doc = Nokogiri::HTML(URI.open(url))
+      doc.css("article.product_pod a").map do |element|
+        element["href"]
+      end
+    end
+
+    def get_book_details(link)
+      puts "Getting book details for #{link}"
+      url = "#{base_url}/catalogue/#{link}"
+      doc = Nokogiri::HTML(URI.open(url))
+
+      data = {}
+
+      data[:title] = doc.css("div.product_main h1").text
+      data[:price] = doc.css("p.price_color").text.split("£").last.to_f
+      data[:category_name] = doc.css("ul.breadcrumb li a").map(&:text).last
+      data[:rating] = RATING_MAP[doc.css("p.star-rating").attr("class").value.split(" ").last]
+
+      data
+    end
+  end
+end

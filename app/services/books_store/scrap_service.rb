@@ -10,18 +10,20 @@ module BooksStore
       "Five" => 5
     }
 
-    attr_reader :errors
+    attr_reader :errors, :page
 
     # https://books.toscrape.com
     def initialize(base_url)
       @base_url = base_url
       @errors = {}
+      @page = 1
     end
 
     def run
+      raise "Total pages arraised" if page > total_pages
       books_details = []
 
-      books_details_links = list_all_books_links
+      books_details_links = get_page_links.uniq
       books_details_links.each do |link|
         book_details = get_book_details(link)
         puts book_details
@@ -30,12 +32,9 @@ module BooksStore
         errors[link] = e.message
       end
 
+      @page += 1
       books_details
     end
-
-    private
-
-    attr_reader :base_url
 
     def total_pages
       return @total_pages if @total_pages
@@ -49,13 +48,11 @@ module BooksStore
       @total_pages = pages
     end
 
-    def list_all_books_links
-      (1..total_pages).map do |page|
-        get_page_links(page)
-      end.flatten
-    end
+    private
 
-    def get_page_links(page)
+    attr_reader :base_url
+
+    def get_page_links
       puts "Getting page #{page} links"
       url ="#{base_url}/catalogue/page-#{page}.html"
       doc = Nokogiri::HTML(URI.open(url))

@@ -49,3 +49,5 @@ group :development, :test do
 end
 
 gem "nokogiri", "~> 1.18"
+
+gem "jbuilder", "~> 2.13"

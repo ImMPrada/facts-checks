@@ -8,6 +8,6 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
-  resources :categories, only [:index]
-  resources :books, only [:index]
+  resources :categories, only: [ :index ], defaults: { format: :json }
+  resources :books, only: [ :index ], defaults: { format: :json }
 end

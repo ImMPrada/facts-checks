@@ -1,22 +1,19 @@
-module Book
-  class CreateService
-    def initialize(book_details)
+module Books
+  class UpsertService
+    def initialize(book_details:, category:)
       @book_details = book_details
+      @category = category
     end
 
     def run
-      create_book
+      upsert_book
     end
 
     private
 
-    attr_reader :book_details
+    attr_reader :book_details, :category
 
-    def category
-      Category.find_or_create_by(name: book_details[:category_name].downcase)
-    end
-
-    def create_book
+    def upsert_book
       Book.find_or_create_by(
         title: book_details[:title].downcase,
         price: book_details[:price],

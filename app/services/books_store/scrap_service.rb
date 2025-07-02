@@ -12,7 +12,7 @@ module BooksStore
 
     attr_reader :errors
 
-    # https://books.toscrape.com/catalogue/
+    # https://books.toscrape.com
     def initialize(base_url)
       @base_url = base_url
       @errors = {}
@@ -73,8 +73,11 @@ module BooksStore
 
       data[:title] = doc.css("div.product_main h1").text
       data[:price] = doc.css("p.price_color").text.split("£").last.to_f
-      data[:category_name] = doc.css("ul.breadcrumb li a").map(&:text).last
       data[:rating] = RATING_MAP[doc.css("p.star-rating").attr("class").value.split(" ").last]
+      data[:category] = {
+        name: doc.css("ul.breadcrumb li a").map(&:text).last,
+        url: doc.css("ul.breadcrumb li a").map { |element| element["href"] }.last.gsub("..", base_url)
+      }
 
       data
     end

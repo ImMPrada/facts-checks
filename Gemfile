@@ -50,4 +50,4 @@ end
 
 gem "nokogiri", "~> 1.18"
 
-gem "jbuilder", "~> 2.13"
+gem "jbuilder", "~> 2.14"

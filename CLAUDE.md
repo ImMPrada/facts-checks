@@ -17,16 +17,18 @@ This is a **fact-checking scraper project** designed to collect and document fac
 - **Database**: PostgreSQL
 - **Job Queue**: Delayed Job (ActiveRecord backend)
 - **Cache**: Solid Cache (Rails 8 default)
+- **Testing**: RSpec, FactoryBot, Faker
 - **Deployment**: Kamal (Docker-based)
 - **Scraping**: Nokogiri (to be added)
 
 ## Project Status
 
-**Current State**: Job system configured
+**Current State**: Job system and testing configured
 - ✅ Fresh Rails 8.1 application initialized
 - ✅ Delayed Job installed and configured
 - ✅ Database created and migrated
 - ✅ ActiveJob configured for all environments
+- ✅ RSpec, FactoryBot, and Faker installed and configured
 - ⏳ Models to be created
 - ⏳ Scraping logic to be implemented
 - Clean git history with feature branch `enqueue-facts-to-check`

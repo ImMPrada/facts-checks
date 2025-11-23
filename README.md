@@ -155,9 +155,26 @@ lib/
 
 ## Testing
 
-Run the test suite:
+This project uses RSpec for testing along with FactoryBot and Faker.
+
+Run the full test suite:
 ```bash
-bin/rails test
+bundle exec rspec
+```
+
+Run specific test files:
+```bash
+bundle exec rspec spec/models/fact_check_spec.rb
+```
+
+Run tests matching a pattern:
+```bash
+bundle exec rspec spec/models
+```
+
+Run with documentation format:
+```bash
+bundle exec rspec --format documentation
 ```
 
 ## Deployment

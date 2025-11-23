@@ -15,20 +15,32 @@ This is a **fact-checking scraper project** designed to collect and document fac
 
 - **Framework**: Ruby on Rails 8.1 (API mode)
 - **Database**: PostgreSQL
-- **Job Queue**: Solid Queue (Rails 8 default)
+- **Job Queue**: Delayed Job (ActiveRecord backend)
 - **Cache**: Solid Cache (Rails 8 default)
 - **Deployment**: Kamal (Docker-based)
 - **Scraping**: Nokogiri (to be added)
 
 ## Project Status
 
-**Current State**: Initial setup phase
-- Fresh Rails 8.1 application initialized
-- No models created yet
-- No scraping logic implemented
-- Clean git history (single "Initial commit")
+**Current State**: Job system configured
+- ✅ Fresh Rails 8.1 application initialized
+- ✅ Delayed Job installed and configured
+- ✅ Database created and migrated
+- ✅ ActiveJob configured for all environments
+- ⏳ Models to be created
+- ⏳ Scraping logic to be implemented
+- Clean git history with feature branch `enqueue-facts-to-check`
 
 **First Target**: https://colombiacheck.com/
+
+## Technology Decisions
+
+### Why Delayed Job?
+- **Database-backed**: Uses PostgreSQL (no additional infrastructure like Redis needed)
+- **Simple**: Easy to set up and maintain
+- **Sufficient**: Perfect for periodic scraping jobs with moderate volume
+- **Mature**: Battle-tested gem with reliable performance
+- **Rails-integrated**: Works seamlessly with ActiveJob
 
 ## Planned Architecture
 
@@ -47,8 +59,15 @@ This is a **fact-checking scraper project** designed to collect and document fac
 - Upsert services for creating/updating records
 - Extendable architecture for adding new sources
 
+### Background Jobs
+- ActiveJob classes for scraping tasks
+- Delayed Job for job processing
+- Jobs can be enqueued via rake tasks, API endpoints, or scheduled
+- Each source gets its own job class (e.g., `ScrapeColombiaCheckJob`)
+
 ### Rake Tasks
 - Tasks for running scrapers (e.g., `rake scrape:colombia_check`)
+- Tasks will enqueue jobs rather than running synchronously
 - Scheduled/background job support for regular updates
 
 ## Development Guidelines

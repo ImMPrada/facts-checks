@@ -22,6 +22,12 @@ gem "solid_cable"
 # Use Delayed Job for background job processing
 gem "delayed_job_active_record"
 
+# HTTP client for making requests
+gem "httparty"
+
+# HTML/XML parser for scraping
+gem "nokogiri"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
@@ -66,4 +72,7 @@ group :test do
 
   # Timecop for time travel in tests
   gem "timecop"
+
+  # WebMock for stubbing HTTP requests
+  gem "webmock"
 end

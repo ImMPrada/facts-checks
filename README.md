@@ -14,7 +14,7 @@ This project collects fact-check data from multiple fact-checking organizations 
 - **Rails**: 8.1.1 (API mode)
 - **Database**: PostgreSQL
 - **Job Queue**: Delayed Job (ActiveRecord backend)
-- **Scraping**: Nokogiri (to be added)
+- **Scraping**: HTTParty, Nokogiri
 
 ## Prerequisites
 
@@ -136,26 +136,37 @@ bin/ci
 
 ```
 app/
-├── controllers/    # API controllers
-├── jobs/          # ActiveJob classes for background tasks
-├── models/        # ActiveRecord models
-└── services/      # Business logic and scraping services
+├── classes/
+│   └── scraping/         # Reusable scraping utility classes
+│       ├── document.rb          # Scraping::Document - HTML wrapper
+│       └── element_set.rb       # Scraping::ElementSet - Element collection
+├── controllers/          # API controllers
+├── jobs/                # ActiveJob classes for background tasks
+├── models/              # ActiveRecord models
+└── services/
+    └── scraping/        # Source-specific scraping services
+        └── colombia_check_scraper_service.rb  # Uses Scraping::Document
 
 config/
-├── environments/  # Environment-specific configurations
+├── environments/        # Environment-specific configurations
 └── ...
 
 db/
-├── migrate/       # Database migrations
+├── migrate/             # Database migrations
 └── ...
 
 lib/
-└── tasks/         # Rake tasks for scraping and maintenance
+└── tasks/               # Rake tasks for scraping and maintenance
+
+spec/
+├── factories/           # FactoryBot factories
+├── models/             # Model specs
+└── ...
 ```
 
 ## Testing
 
-This project uses RSpec for testing along with FactoryBot, Faker, Shoulda-Matchers, and Timecop.
+This project uses RSpec for testing along with FactoryBot, Faker, Shoulda-Matchers, Timecop, and WebMock for HTTP stubbing.
 
 Run the full test suite:
 ```bash

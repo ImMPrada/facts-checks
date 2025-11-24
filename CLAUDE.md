@@ -17,19 +17,20 @@ This is a **fact-checking scraper project** designed to collect and document fac
 - **Database**: PostgreSQL
 - **Job Queue**: Delayed Job (ActiveRecord backend)
 - **Cache**: Solid Cache (Rails 8 default)
-- **Testing**: RSpec, FactoryBot, Faker
+- **Testing**: RSpec, FactoryBot, Faker, Shoulda-Matchers, Timecop
 - **Deployment**: Kamal (Docker-based)
 - **Scraping**: Nokogiri (to be added)
 
 ## Project Status
 
-**Current State**: Job system and testing configured
+**Current State**: FactCheckUrl model created
 - ✅ Fresh Rails 8.1 application initialized
 - ✅ Delayed Job installed and configured
 - ✅ Database created and migrated
 - ✅ ActiveJob configured for all environments
-- ✅ RSpec, FactoryBot, and Faker installed and configured
-- ⏳ Models to be created
+- ✅ RSpec, FactoryBot, Faker, Shoulda-Matchers, and Timecop configured
+- ✅ FactCheckUrl model created with specs (19 passing tests)
+- ⏳ Additional models to be created (FactCheck, Source, etc.)
 - ⏳ Scraping logic to be implemented
 - Clean git history with feature branch `enqueue-facts-to-check`
 
@@ -46,14 +47,28 @@ This is a **fact-checking scraper project** designed to collect and document fac
 
 ## Planned Architecture
 
-### Models (To Be Created)
-- **FactCheck**: Main model storing individual fact-check articles
+### Models
+- **FactCheckUrl** ✅ (Created)
+  - Tracks URLs to be scraped and their processing status
+  - Fields: url (unique, indexed), digested (boolean, indexed), source (enum), digested_at, attempts, last_error
+  - Enum source: `:colombia_check` (expandable for future sources)
+  - Scopes: `undigested`, `digested`, `by_source`, `with_errors`
+  - Methods: `mark_as_digested!`, `mark_as_failed!`
+
+- **FactCheck** (To Be Created)
+  - Main model storing individual fact-check articles
   - Fields: title, claim, verdict, date, url, author, content, etc.
-- **Source**: Fact-checking organizations/websites
+
+- **Source** (Optional - To Be Created)
+  - Fact-checking organizations/websites metadata
   - Fields: name, url, base_url, active status, etc.
-- **Category/Topic**: Classification of fact-checks
-  - Optional: for organizing fact-checks by subject matter
-- **Verdict**: Standardized verdict types across sources
+
+- **Category/Topic** (Optional - To Be Created)
+  - Classification of fact-checks
+  - For organizing fact-checks by subject matter
+
+- **Verdict** (Optional - To Be Created)
+  - Standardized verdict types across sources
   - Different sources may use different rating systems
 
 ### Services Pattern

@@ -60,4 +60,10 @@ end
 group :test do
   # Faker for generating fake data in tests
   gem "faker"
+
+  # Shoulda Matchers for cleaner model specs
+  gem "shoulda-matchers", "~> 6.0"
+
+  # Timecop for time travel in tests
+  gem "timecop"
 end

@@ -155,7 +155,7 @@ lib/
 
 ## Testing
 
-This project uses RSpec for testing along with FactoryBot and Faker.
+This project uses RSpec for testing along with FactoryBot, Faker, Shoulda-Matchers, and Timecop.
 
 Run the full test suite:
 ```bash
@@ -190,8 +190,28 @@ See `config/deploy.yml` for deployment configuration.
 3. Run tests and code quality checks (`bin/ci`)
 4. Submit a pull request
 
+## Current Models
+
+### FactCheckUrl
+Tracks URLs to be scraped and their processing status.
+
+**Fields:**
+- `url` - The fact-check article URL (unique, indexed)
+- `digested` - Whether the URL has been processed (boolean, indexed)
+- `source` - Source website (enum: `:colombia_check`)
+- `digested_at` - When it was processed
+- `attempts` - Number of scraping attempts
+- `last_error` - Last error message if failed
+
+**Scopes:**
+- `.undigested` - URLs not yet processed
+- `.digested` - Already processed URLs
+- `.by_source(source)` - Filter by source
+- `.with_errors` - URLs that failed processing
+
 ## Roadmap
 
+- [x] Create FactCheckUrl model for tracking URLs
 - [ ] Create database models (FactCheck, Source, Verdict)
 - [ ] Implement ColombiaCheck scraper
 - [ ] Create background jobs for scraping

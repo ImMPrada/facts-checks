@@ -314,6 +314,8 @@ GEM
       ffi (~> 1.12)
       logger
     securerandom (0.4.1)
+    shoulda-matchers (6.5.0)
+      activesupport (>= 5.2.0)
     solid_cable (3.0.12)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -337,6 +339,7 @@ GEM
     thruster (0.1.16-arm64-darwin)
     thruster (0.1.16-x86_64-darwin)
     thruster (0.1.16-x86_64-linux)
+    timecop (0.9.10)
     timeout (0.4.4)
     tsort (0.2.0)
     tzinfo (2.0.6)
@@ -379,9 +382,11 @@ DEPENDENCIES
   rails (~> 8.1.1)
   rspec-rails (~> 7.1)
   rubocop-rails-omakase
+  shoulda-matchers (~> 6.0)
   solid_cable
   solid_cache
   thruster
+  timecop
   tzinfo-data
 
 BUNDLED WITH

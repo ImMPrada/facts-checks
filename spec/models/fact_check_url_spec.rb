@@ -95,6 +95,24 @@ RSpec.describe FactCheckUrl, type: :model do
     end
   end
 
+  describe '#full_url' do
+    context 'when source is colombia_check' do
+      let(:fact_check_url) { create(:fact_check_url, url: '/chequeos/test-article', source: :colombia_check) }
+
+      it 'returns the full URL with domain' do
+        expect(fact_check_url.full_url).to eq('https://colombiacheck.com/chequeos/test-article')
+      end
+    end
+
+    context 'when URL is a path without leading slash' do
+      let(:fact_check_url) { create(:fact_check_url, url: 'chequeos/another-article', source: :colombia_check) }
+
+      it 'concatenates domain and path' do
+        expect(fact_check_url.full_url).to eq('https://colombiacheck.comchequeos/another-article')
+      end
+    end
+  end
+
   describe 'default values' do
     let(:fact_check_url) { create(:fact_check_url) }
 

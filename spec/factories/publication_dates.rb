@@ -1,5 +1,5 @@
 FactoryBot.define do
   factory :publication_date do
-    date { Faker::Date.unique.backward(days: 365) }
+    date { Faker::Date.unique.backward(days: 365).to_s }
   end
 end

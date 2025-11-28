@@ -75,4 +75,6 @@ group :test do
 
   # WebMock for stubbing HTTP requests
   gem "webmock"
+
+  gem "byebug", "~> 12.0"
 end

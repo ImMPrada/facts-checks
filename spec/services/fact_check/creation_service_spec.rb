@@ -7,7 +7,7 @@ RSpec.describe FactCheck::CreationService do
       title: 'Test Fact Check',
       reasoning: 'This is a detailed explanation',
       veredict: 'true',
-      publication_date: Date.new(2025, 1, 15)
+      publication_date: "2025-01-15"
     }
   end
   let(:service) { described_class.new(params) }
@@ -118,7 +118,7 @@ RSpec.describe FactCheck::CreationService do
       end
     end
 
-    context 'with publication_date as Date' do
+    context 'with publication_date as string' do
       it 'creates a new PublicationDate' do
         expect {
           service.build
@@ -128,12 +128,12 @@ RSpec.describe FactCheck::CreationService do
       it 'assigns the publication_date to fact_check' do
         service.build
         expect(service.fact_check.publication_date).to be_a(PublicationDate)
-        expect(service.fact_check.publication_date.date).to eq(Date.new(2025, 1, 15))
+        expect(service.fact_check.publication_date.date).to eq("2025-01-15")
       end
     end
 
     context 'with existing publication_date' do
-      let!(:existing_date) { PublicationDate.create!(date: Date.new(2025, 1, 15)) }
+      let!(:existing_date) { PublicationDate.create!(date: "2025-01-15") }
 
       it 'does not create a new PublicationDate' do
         expect {
@@ -148,7 +148,7 @@ RSpec.describe FactCheck::CreationService do
     end
 
     context 'with publication_date as PublicationDate object' do
-      let!(:publication_date_object) { PublicationDate.create!(date: Date.new(2025, 2, 20)) }
+      let!(:publication_date_object) { PublicationDate.create!(date: "2025-02-20") }
       let(:params) do
         {
           source_url: 'https://example.com/fact-check',
@@ -195,7 +195,7 @@ RSpec.describe FactCheck::CreationService do
           title: 'Test Fact Check',
           reasoning: 'This is a detailed explanation',
           veredict: 'mostly true',
-          publication_date: Date.new(2025, 1, 15)
+          publication_date: "2025-01-15"
         }
       end
 
@@ -236,7 +236,7 @@ RSpec.describe FactCheck::CreationService do
       expect(reloaded.title).to eq('Test Fact Check')
       expect(reloaded.reasoning).to eq('This is a detailed explanation')
       expect(reloaded.veredict.name).to eq('TRUE')
-      expect(reloaded.publication_date.date).to eq(Date.new(2025, 1, 15))
+      expect(reloaded.publication_date.date).to eq("2025-01-15")
     end
   end
 
@@ -248,7 +248,7 @@ RSpec.describe FactCheck::CreationService do
       expect(saved).to be_persisted
       expect(saved.source_url).to eq('https://example.com/fact-check')
       expect(saved.veredict.name).to eq('TRUE')
-      expect(saved.publication_date.date).to eq(Date.new(2025, 1, 15))
+      expect(saved.publication_date.date).to eq("2025-01-15")
     end
 
     it 'reuses existing veredict and publication_date' do

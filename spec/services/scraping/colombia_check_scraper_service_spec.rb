@@ -149,4 +149,79 @@ RSpec.describe Scraping::ColombiaCheckScraperService do
       end
     end
   end
+
+  describe '#mine_fact' do
+    let(:url) { 'https://colombiacheck.com/chequeos/con-datos-imprecisos-repiten-la-mentira-de-que-petro-no-le-ha-hecho-reformas-la' }
+    let(:fixture_html) { File.read(Rails.root.join('spec/fixtures/colombia_check_fact_with_accounts.html')) }
+
+    before do
+      stub_request(:get, url).to_return(status: 200, body: fixture_html)
+    end
+
+    it 'fetches the URL' do
+      service.mine_fact(url)
+      expect(a_request(:get, url)).to have_been_made.once
+    end
+
+    it 'returns a hash with all extracted data' do
+      result = service.mine_fact(url)
+
+      expect(result).to be_a(Hash)
+      expect(result[:source_url]).to eq(url)
+      expect(result[:veredict]).to be_present
+      expect(result[:title]).to be_present
+      expect(result[:reasoning]).to be_present
+    end
+
+    it 'extracts veredict from Portada-bandera-text' do
+      result = service.mine_fact(url)
+      expect(result[:veredict]).to eq('Cuestionable')
+    end
+
+    it 'extracts title from text-articulos > div > h2 > span' do
+      result = service.mine_fact(url)
+      expect(result[:title]).to include('Petro')
+      expect(result[:title]).to include('reformas')
+    end
+
+    it 'composes reasoning from multiple sections' do
+      result = service.mine_fact(url)
+      reasoning = result[:reasoning]
+
+      expect(reasoning).to be_a(String)
+      expect(reasoning.length).to be > 100
+    end
+
+    it 'separates reasoning parts with blank lines' do
+      result = service.mine_fact(url)
+      reasoning = result[:reasoning]
+
+      expect(reasoning).to include("\n\n")
+    end
+
+    it 'includes datos-clave section in reasoning' do
+      result = service.mine_fact(url)
+      reasoning = result[:reasoning]
+
+      expect(reasoning).to include('3 DATOS CLAVE')
+    end
+
+    it 'captures links from "Cuentas que difundieron" section' do
+      result = service.mine_fact(url)
+      reasoning = result[:reasoning]
+
+      # Should include the section header
+      expect(reasoning).to include('Cuentas que difundieron')
+
+      # Should capture Evernote links
+      expect(reasoning).to include('Link: https://share.evernote.com/note/6d7fdbd4-5204-4ac6-8404-fd1f7a019917')
+      expect(reasoning).to include('Link: https://share.evernote.com/note/2bc57fac-aaa2-4610-aab8-6dd71095d374')
+      expect(reasoning).to include('Link: https://share.evernote.com/note/35d11084-4d6c-4978-9f5b-1a3aa5a8aeb9')
+
+      # Should capture archive.ph links
+      expect(reasoning).to include('Link: https://archive.ph/tkyIN')
+      expect(reasoning).to include('Link: https://archive.ph/ZE34i')
+      expect(reasoning).to include('Link: https://archive.ph/GhHI6')
+    end
+  end
 end

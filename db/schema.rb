@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_23_232727) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_28_125824) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,4 +42,34 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_23_232727) do
     t.index ["source", "digested"], name: "index_fact_check_urls_on_source_and_digested"
     t.index ["url"], name: "index_fact_check_urls_on_url", unique: true
   end
+
+  create_table "fact_checks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "digested", default: false
+    t.bigint "publication_date_id"
+    t.text "reasoning"
+    t.string "source_url"
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.bigint "veredict_id", null: false
+    t.index ["publication_date_id"], name: "index_fact_checks_on_publication_date_id"
+    t.index ["veredict_id"], name: "index_fact_checks_on_veredict_id"
+  end
+
+  create_table "publication_dates", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date"
+    t.datetime "updated_at", null: false
+    t.index ["date"], name: "index_publication_dates_on_date", unique: true
+  end
+
+  create_table "veredicts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_veredicts_on_name", unique: true
+  end
+
+  add_foreign_key "fact_checks", "publication_dates"
+  add_foreign_key "fact_checks", "veredicts"
 end

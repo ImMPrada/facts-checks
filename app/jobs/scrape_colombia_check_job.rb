@@ -8,7 +8,7 @@ class ScrapeColombiaCheckJob < ApplicationJob
     scraper.create_fact_urls(article_links)
 
     # Re-enqueue for next page with random delay of 1-3 minutes
-    delay = rand(1..3).minutes
+    delay = rand(10..20).seconds
     ScrapeColombiaCheckJob.set(wait: delay).perform_later(page_number + 1)
   rescue ActiveRecord::RecordInvalid => e
     # Re-enqueue for 1 week later, starting from page 0

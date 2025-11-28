@@ -15,40 +15,97 @@ This is a **fact-checking scraper project** designed to collect and document fac
 
 - **Framework**: Ruby on Rails 8.1 (API mode)
 - **Database**: PostgreSQL
-- **Job Queue**: Solid Queue (Rails 8 default)
+- **Job Queue**: Delayed Job (ActiveRecord backend)
 - **Cache**: Solid Cache (Rails 8 default)
+- **Testing**: RSpec, FactoryBot, Faker, Shoulda-Matchers, Timecop, WebMock
 - **Deployment**: Kamal (Docker-based)
-- **Scraping**: Nokogiri (to be added)
+- **Scraping**: HTTParty, Nokogiri
 
 ## Project Status
 
-**Current State**: Initial setup phase
-- Fresh Rails 8.1 application initialized
-- No models created yet
-- No scraping logic implemented
-- Clean git history (single "Initial commit")
+**Current State**: Scraping infrastructure complete and tested
+- ✅ Fresh Rails 8.1 application initialized
+- ✅ Delayed Job installed and configured
+- ✅ Database created and migrated
+- ✅ ActiveJob configured for all environments
+- ✅ RSpec, FactoryBot, Faker, Shoulda-Matchers, Timecop, and WebMock configured
+- ✅ FactCheckUrl model created with specs (19 passing tests)
+- ✅ HTTParty and Nokogiri installed
+- ✅ Scraping::Document and Scraping::ElementSet classes created with comprehensive specs (51 passing tests)
+- ✅ **Total: 70 passing tests**
+- ⏳ Additional models to be created (FactCheck, Source, etc.)
+- ⏳ ColombiaCheckScraperService to be implemented
+- Clean git history with feature branch `enqueue-facts-to-check`
 
 **First Target**: https://colombiacheck.com/
 
+## Technology Decisions
+
+### Why Delayed Job?
+- **Database-backed**: Uses PostgreSQL (no additional infrastructure like Redis needed)
+- **Simple**: Easy to set up and maintain
+- **Sufficient**: Perfect for periodic scraping jobs with moderate volume
+- **Mature**: Battle-tested gem with reliable performance
+- **Rails-integrated**: Works seamlessly with ActiveJob
+
 ## Planned Architecture
 
-### Models (To Be Created)
-- **FactCheck**: Main model storing individual fact-check articles
+### Models
+- **FactCheckUrl** ✅ (Created)
+  - Tracks URLs to be scraped and their processing status
+  - Fields: url (unique, indexed), digested (boolean, indexed), source (enum), digested_at, attempts, last_error
+  - Enum source: `:colombia_check` (expandable for future sources)
+  - Scopes: `undigested`, `digested`, `by_source`, `with_errors`
+  - Methods: `mark_as_digested!`, `mark_as_failed!`
+
+- **FactCheck** (To Be Created)
+  - Main model storing individual fact-check articles
   - Fields: title, claim, verdict, date, url, author, content, etc.
-- **Source**: Fact-checking organizations/websites
+
+- **Source** (Optional - To Be Created)
+  - Fact-checking organizations/websites metadata
   - Fields: name, url, base_url, active status, etc.
-- **Category/Topic**: Classification of fact-checks
-  - Optional: for organizing fact-checks by subject matter
-- **Verdict**: Standardized verdict types across sources
+
+- **Category/Topic** (Optional - To Be Created)
+  - Classification of fact-checks
+  - For organizing fact-checks by subject matter
+
+- **Verdict** (Optional - To Be Created)
+  - Standardized verdict types across sources
   - Different sources may use different rating systems
 
-### Services Pattern
-- Scraping services per source (e.g., `ColombiaCheck::ScrapService`)
-- Upsert services for creating/updating records
-- Extendable architecture for adding new sources
+### Scraping Architecture
+
+**Reusable Scraping Classes** (`app/classes/scraping/`):
+- **`Scraping::Document`** - HTML document wrapper using Nokogiri and HTTParty
+  - Fetch HTML from URLs
+  - Find elements by ID, CSS selector, or tag
+  - Returns `ElementSet` for chaining operations
+  - Methods: `fetch(url)`, `find_by_id(id)`, `find(selector)`, `find_all(selector)`
+
+- **`Scraping::ElementSet`** - Collection of HTML elements
+  - Chainable element queries within results
+  - Extract text, HTML, attributes
+  - Enumerable support for iteration
+  - Methods: `find_by_id(id)`, `find(selector)`, `find_all(selector)`, `find_by_tag(tag)`, `text`, `attr(name)`, `pluck_attr(name)`
+
+**Source-Specific Services** (`app/services/scraping/`):
+- **`Scraping::ColombiaCheckScraperService`** - ColombiaCheck scraping logic
+  - Consumes `Scraping::Document` and `Scraping::ElementSet`
+  - Implements ColombiaCheck-specific parsing and business logic
+
+**Pattern**: Generic scraping classes + source-specific services
+**Extensibility**: Add new sources by creating new scraper services (e.g., `Scraping::ChequeadoScraperService`)
+
+### Background Jobs
+- ActiveJob classes for scraping tasks
+- Delayed Job for job processing
+- Jobs can be enqueued via rake tasks, API endpoints, or scheduled
+- Each source gets its own job class (e.g., `ScrapeColombiaCheckJob`)
 
 ### Rake Tasks
 - Tasks for running scrapers (e.g., `rake scrape:colombia_check`)
+- Tasks will enqueue jobs rather than running synchronously
 - Scheduled/background job support for regular updates
 
 ## Development Guidelines

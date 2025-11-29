@@ -28,6 +28,9 @@ gem "httparty"
 # HTML/XML parser for scraping
 gem "nokogiri"
 
+# OpenAI API client
+gem "ruby-openai"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 

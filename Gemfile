@@ -22,6 +22,12 @@ gem "solid_cable"
 # Use Delayed Job for background job processing
 gem "delayed_job_active_record"
 
+# HTTP client for making requests
+gem "httparty"
+
+# HTML/XML parser for scraping
+gem "nokogiri"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
@@ -41,6 +47,12 @@ group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
+  # RSpec testing framework
+  gem "rspec-rails", "~> 7.1"
+
+  # Factory Bot for test data
+  gem "factory_bot_rails"
+
   # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
   gem "bundler-audit", require: false
 
@@ -49,4 +61,18 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+end
+
+group :test do
+  # Faker for generating fake data in tests
+  gem "faker"
+
+  # Shoulda Matchers for cleaner model specs
+  gem "shoulda-matchers", "~> 6.0"
+
+  # Timecop for time travel in tests
+  gem "timecop"
+
+  # WebMock for stubbing HTTP requests
+  gem "webmock"
 end

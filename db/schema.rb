@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_28_153519) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_29_194910) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,7 +60,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_28_153519) do
     t.datetime "created_at", null: false
     t.string "date"
     t.datetime "updated_at", null: false
+    t.date "value"
     t.index ["date"], name: "index_publication_dates_on_date", unique: true
+    t.index ["value"], name: "index_publication_dates_on_value"
   end
 
   create_table "veredicts", force: :cascade do |t|

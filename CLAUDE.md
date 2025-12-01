@@ -25,17 +25,28 @@ This is a **fact-checking scraper project** designed to collect and document fac
 
 ## Project Status
 
-**Current State**: Full scraping and AI-powered date parsing infrastructure complete
+**Current State**: Full scraping, AI-powered date parsing, and related entities infrastructure complete
 - ✅ Fresh Rails 8.1 application initialized
 - ✅ Delayed Job installed and configured
 - ✅ Database created and migrated
 - ✅ ActiveJob configured for all environments
 - ✅ RSpec, FactoryBot, Faker, Shoulda-Matchers, Timecop, and WebMock configured
-- ✅ All models created and tested:
+- ✅ Core models created and tested:
   - FactCheckUrl (19 tests)
-  - FactCheck (14 tests)
+  - FactCheck (22 tests)
   - Veredict (4 tests)
   - PublicationDate (4 tests)
+- ✅ Related entities models:
+  - Topic (4 tests)
+  - ActorType (4 tests)
+  - Actor (6 tests)
+  - ActorRole (4 tests)
+  - Platform (4 tests)
+  - Disseminator (6 tests)
+  - DisseminatorUrl (4 tests)
+  - FactCheckTopic (6 tests)
+  - FactCheckActor (7 tests)
+  - FactCheckDisseminator (6 tests)
 - ✅ Scraping infrastructure:
   - Scraping::Document and Scraping::ElementSet (51 tests)
   - Scraping::ColombiaCheckScraperService (13 tests)
@@ -49,8 +60,8 @@ This is a **fact-checking scraper project** designed to collect and document fac
 - ✅ OpenAI integration:
   - Openai::Client wrapper (11 tests)
   - AI-powered date parsing with timezone conversion
-- ✅ **Total: 204 passing tests**
-- Clean git history with feature branch `add-date-value-to-publication-dates`
+- ✅ **Total: 265 passing tests**
+- Current branch: `add-other-tables`
 
 **First Target**: https://colombiacheck.com/
 
@@ -82,7 +93,12 @@ This is a **fact-checking scraper project** designed to collect and document fac
 - **FactCheck** ✅
   - Main model storing individual fact-check articles
   - Fields: source_url (unique, indexed), title, reasoning, digested (boolean), digested_at
-  - Associations: belongs_to :veredict (required), belongs_to :publication_date (optional)
+  - Associations:
+    - belongs_to :veredict (required)
+    - belongs_to :publication_date (optional)
+    - has_many :topics (through :fact_check_topics)
+    - has_many :actors (through :fact_check_actors)
+    - has_many :disseminators (through :fact_check_disseminators)
   - Scopes: `undigested`, `digested`, `by_veredict`, `by_publication_date`
   - Methods: `mark_as_digested!`
 
@@ -98,13 +114,45 @@ This is a **fact-checking scraper project** designed to collect and document fac
   - The `date` field stores the raw scraped date string
   - The `value` field stores the AI-parsed UTC date
 
-- **Source** (Future - Optional)
-  - Fact-checking organizations/websites metadata
-  - Fields: name, url, base_url, active status, etc.
+- **Topic** ✅
+  - Classification/categorization of fact-checks by subject matter
+  - Fields: name (unique, indexed)
+  - Associations: has_many :fact_checks (through :fact_check_topics)
 
-- **Category/Topic** (Future - Optional)
-  - Classification of fact-checks
-  - For organizing fact-checks by subject matter
+- **ActorType** ✅
+  - Types of actors involved in fact-checks (person, government_entity, organization)
+  - Fields: name (unique, indexed)
+  - Associations: has_many :actors
+
+- **Actor** ✅
+  - People, organizations, or entities mentioned in fact-checks
+  - Fields: name (indexed), actor_type_id (FK)
+  - Associations: belongs_to :actor_type, has_many :fact_checks (through :fact_check_actors)
+
+- **ActorRole** ✅
+  - Roles actors play in fact-checks (target, mentioned, beneficiary, source)
+  - Fields: name (unique, indexed)
+  - Associations: has_many :fact_check_actors
+
+- **Platform** ✅
+  - Social media/communication platforms used by disseminators
+  - Fields: name (unique, indexed)
+  - Associations: has_many :disseminators
+
+- **Disseminator** ✅
+  - Accounts/profiles that spread claims or misinformation
+  - Fields: name, platform_id (FK)
+  - Associations: belongs_to :platform, has_many :disseminator_urls, has_many :fact_checks (through :fact_check_disseminators)
+
+- **DisseminatorUrl** ✅
+  - URLs associated with disseminator accounts
+  - Fields: url, disseminator_id (FK)
+  - Associations: belongs_to :disseminator
+
+**Junction Tables:**
+- **FactCheckTopic** ✅ - Links fact_checks to topics (many-to-many)
+- **FactCheckActor** ✅ - Links fact_checks to actors with roles (many-to-many with role context)
+- **FactCheckDisseminator** ✅ - Links fact_checks to disseminators (many-to-many)
 
 ### Scraping Architecture
 
@@ -146,7 +194,7 @@ This is a **fact-checking scraper project** designed to collect and document fac
   - Uses OpenAI to parse date strings from Colombia/Bogota timezone to UTC
   - Validates parsed dates (year range 1900-2100)
   - Updates PublicationDate.value field
-  - Error class: `PublicationDates::Errors::ParseDateServiceError`
+  - Error class: `ParseDateError`
 
 ### OpenAI Integration
 
@@ -217,7 +265,7 @@ Note: The `.env` file is loaded automatically by the `dotenv-rails` gem in devel
 - **One class per file** - No nested class definitions
 - **Errors in separate files** - Use `module_name/errors/error_name.rb` pattern
   - Example: `Openai::Errors::ClientError` in `app/classes/openai/errors/client_error.rb`
-  - Example: `PublicationDates::Errors::ParseDateServiceError` in `app/services/publication_dates/errors/parse_date_service_error.rb`
+  - Example: `ParseDateError` in `app/services/publication_dates/errors/parse_date_service_error.rb`
 - **Avoid instance variables** - Use attr_accessor, attr_reader, and attr_writer instead
 - Use `attr_accessor` in `private` section for internal instance variables
 - Use `attr_reader` and `attr_writer` in public section for publicly exposed attributes

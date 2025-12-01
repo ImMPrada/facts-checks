@@ -55,7 +55,7 @@ RSpec.describe ProcessPublicationDatesJob, type: :job do
           .with(publication_date)
           .and_return(mock_service)
         allow(mock_service).to receive(:call)
-          .and_raise(PublicationDates::Errors::ParseDateServiceError.new("Parse failed"))
+          .and_raise(ParseDateError.new("Parse failed"))
       end
 
       it "logs the error" do
@@ -65,7 +65,7 @@ RSpec.describe ProcessPublicationDatesJob, type: :job do
           .with(/Failed to process PublicationDate##{publication_date.id}/)
 
         expect { described_class.new.perform }
-          .to raise_error(PublicationDates::Errors::ParseDateServiceError)
+          .to raise_error(ParseDateError)
       end
 
       it "re-raises the error for retry mechanism" do
@@ -73,7 +73,7 @@ RSpec.describe ProcessPublicationDatesJob, type: :job do
         allow(Rails.logger).to receive(:error)
 
         expect { described_class.new.perform }
-          .to raise_error(PublicationDates::Errors::ParseDateServiceError)
+          .to raise_error(ParseDateError)
       end
     end
 

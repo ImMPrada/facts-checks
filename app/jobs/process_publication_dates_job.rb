@@ -28,7 +28,7 @@ class ProcessPublicationDatesJob < ApplicationJob
     Rails.logger.info(
       "Successfully processed PublicationDate##{publication_date.id}, value: #{publication_date.value}"
     )
-  rescue PublicationDates::Errors::ParseDateServiceError => e
+  rescue ParseDateError => e
     Rails.logger.error(
       "Failed to process PublicationDate##{publication_date.id}: #{e.message}"
     )

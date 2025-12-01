@@ -2,6 +2,15 @@ class FactCheck < ApplicationRecord
   belongs_to :veredict
   belongs_to :publication_date, optional: true
 
+  has_many :fact_check_topics, dependent: :destroy
+  has_many :topics, through: :fact_check_topics
+
+  has_many :fact_check_actors, dependent: :destroy
+  has_many :actors, through: :fact_check_actors
+
+  has_many :fact_check_disseminators, dependent: :destroy
+  has_many :disseminators, through: :fact_check_disseminators
+
   validates :source_url, presence: true
   validates :title, presence: true
   validates :veredict, presence: true

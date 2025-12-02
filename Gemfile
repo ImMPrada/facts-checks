@@ -68,7 +68,7 @@ group :test do
   gem "faker"
 
   # Shoulda Matchers for cleaner model specs
-  gem "shoulda-matchers", "~> 6.0"
+  gem "shoulda-matchers", "~> 7.0"
 
   # Timecop for time travel in tests
   gem "timecop"

@@ -28,9 +28,6 @@ gem "httparty"
 # HTML/XML parser for scraping
 gem "nokogiri"
 
-# OpenAI API client
-gem "ruby-openai"
-
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
@@ -49,9 +46,6 @@ gem "image_processing", "~> 1.2"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
-
-  # Load environment variables from .env file
-  gem "dotenv-rails"
 
   # RSpec testing framework
   gem "rspec-rails", "~> 7.1"
@@ -81,6 +75,4 @@ group :test do
 
   # WebMock for stubbing HTTP requests
   gem "webmock"
-
-  gem "byebug", "~> 12.0"
 end

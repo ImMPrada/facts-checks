@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_23_224701) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_23_232727) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,5 +27,19 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_23_224701) do
     t.datetime "run_at"
     t.datetime "updated_at"
     t.index ["priority", "run_at"], name: "delayed_jobs_priority"
+  end
+
+  create_table "fact_check_urls", force: :cascade do |t|
+    t.integer "attempts", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.boolean "digested", default: false, null: false
+    t.datetime "digested_at"
+    t.text "last_error"
+    t.integer "source", null: false
+    t.datetime "updated_at", null: false
+    t.string "url", null: false
+    t.index ["digested"], name: "index_fact_check_urls_on_digested"
+    t.index ["source", "digested"], name: "index_fact_check_urls_on_source_and_digested"
+    t.index ["url"], name: "index_fact_check_urls_on_url", unique: true
   end
 end

@@ -1,0 +1,1 @@
+class ParseDateError < StandardError; end

@@ -14,7 +14,7 @@ This project collects fact-check data from multiple fact-checking organizations 
 - **Rails**: 8.1.1 (API mode)
 - **Database**: PostgreSQL
 - **Job Queue**: Delayed Job (ActiveRecord backend)
-- **Scraping**: Nokogiri (to be added)
+- **Scraping**: HTTParty, Nokogiri
 
 ## Prerequisites
 
@@ -136,28 +136,56 @@ bin/ci
 
 ```
 app/
-├── controllers/    # API controllers
-├── jobs/          # ActiveJob classes for background tasks
-├── models/        # ActiveRecord models
-└── services/      # Business logic and scraping services
+├── classes/
+│   └── scraping/         # Reusable scraping utility classes
+│       ├── document.rb          # Scraping::Document - HTML wrapper
+│       └── element_set.rb       # Scraping::ElementSet - Element collection
+├── controllers/          # API controllers
+├── jobs/                # ActiveJob classes for background tasks
+├── models/              # ActiveRecord models
+└── services/
+    └── scraping/        # Source-specific scraping services
+        └── colombia_check_scraper_service.rb  # Uses Scraping::Document
 
 config/
-├── environments/  # Environment-specific configurations
+├── environments/        # Environment-specific configurations
 └── ...
 
 db/
-├── migrate/       # Database migrations
+├── migrate/             # Database migrations
 └── ...
 
 lib/
-└── tasks/         # Rake tasks for scraping and maintenance
+└── tasks/               # Rake tasks for scraping and maintenance
+
+spec/
+├── factories/           # FactoryBot factories
+├── models/             # Model specs
+└── ...
 ```
 
 ## Testing
 
-Run the test suite:
+This project uses RSpec for testing along with FactoryBot, Faker, Shoulda-Matchers, Timecop, and WebMock for HTTP stubbing.
+
+Run the full test suite:
 ```bash
-bin/rails test
+bundle exec rspec
+```
+
+Run specific test files:
+```bash
+bundle exec rspec spec/models/fact_check_spec.rb
+```
+
+Run tests matching a pattern:
+```bash
+bundle exec rspec spec/models
+```
+
+Run with documentation format:
+```bash
+bundle exec rspec --format documentation
 ```
 
 ## Deployment
@@ -173,8 +201,28 @@ See `config/deploy.yml` for deployment configuration.
 3. Run tests and code quality checks (`bin/ci`)
 4. Submit a pull request
 
+## Current Models
+
+### FactCheckUrl
+Tracks URLs to be scraped and their processing status.
+
+**Fields:**
+- `url` - The fact-check article URL (unique, indexed)
+- `digested` - Whether the URL has been processed (boolean, indexed)
+- `source` - Source website (enum: `:colombia_check`)
+- `digested_at` - When it was processed
+- `attempts` - Number of scraping attempts
+- `last_error` - Last error message if failed
+
+**Scopes:**
+- `.undigested` - URLs not yet processed
+- `.digested` - Already processed URLs
+- `.by_source(source)` - Filter by source
+- `.with_errors` - URLs that failed processing
+
 ## Roadmap
 
+- [x] Create FactCheckUrl model for tracking URLs
 - [ ] Create database models (FactCheck, Source, Verdict)
 - [ ] Implement ColombiaCheck scraper
 - [ ] Create background jobs for scraping

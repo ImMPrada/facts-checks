@@ -17,7 +17,7 @@ module PublicationDates
       Rails.logger.error(
         "Failed to parse date for PublicationDate##{publication_date.id}: #{e.message}"
       )
-      raise Errors::ParseDateServiceError, "Failed to parse date: #{e.message}"
+      raise ParseDateError, "Failed to parse date: #{e.message}"
     end
 
     private
@@ -60,19 +60,19 @@ module PublicationDates
 
     def parse_response(response)
       if response.nil? || response == "INVALID"
-        raise Errors::ParseDateServiceError, "OpenAI could not parse the date: #{publication_date.date}"
+        raise ParseDateError, "OpenAI could not parse the date: #{publication_date.date}"
       end
 
       date = Date.parse(response)
       validate_date(date)
       date
     rescue ArgumentError => e
-      raise Errors::ParseDateServiceError, "Invalid date format from OpenAI: #{response}"
+      raise ParseDateError, "Invalid date format from OpenAI: #{response}"
     end
 
     def validate_date(date)
       if date.year < 1900 || date.year > 2100
-        raise Errors::ParseDateServiceError, "Date year out of reasonable range: #{date}"
+        raise ParseDateError, "Date year out of reasonable range: #{date}"
       end
     end
   end

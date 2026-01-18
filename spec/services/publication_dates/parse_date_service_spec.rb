@@ -57,7 +57,7 @@ RSpec.describe PublicationDates::ParseDateService do
 
       it "raises an error" do
         expect { service.call }
-          .to raise_error(PublicationDates::Errors::ParseDateServiceError, /could not parse the date/)
+          .to raise_error(ParseDateError, /could not parse the date/)
       end
     end
 
@@ -68,7 +68,7 @@ RSpec.describe PublicationDates::ParseDateService do
 
       it "raises an error" do
         expect { service.call }
-          .to raise_error(PublicationDates::Errors::ParseDateServiceError, /Invalid date format/)
+          .to raise_error(ParseDateError, /Invalid date format/)
       end
     end
 
@@ -79,7 +79,7 @@ RSpec.describe PublicationDates::ParseDateService do
 
       it "raises an error" do
         expect { service.call }
-          .to raise_error(PublicationDates::Errors::ParseDateServiceError, /year out of reasonable range/)
+          .to raise_error(ParseDateError, /year out of reasonable range/)
       end
     end
 
@@ -93,12 +93,12 @@ RSpec.describe PublicationDates::ParseDateService do
         allow(Rails.logger).to receive(:error)
         expect(Rails.logger).to receive(:error).with(/Failed to parse date/)
 
-        expect { service.call }.to raise_error(PublicationDates::Errors::ParseDateServiceError)
+        expect { service.call }.to raise_error(ParseDateError)
       end
 
       it "raises a ParseDateService error" do
         expect { service.call }
-          .to raise_error(PublicationDates::Errors::ParseDateServiceError, /Failed to parse date/)
+          .to raise_error(ParseDateError, /Failed to parse date/)
       end
     end
 

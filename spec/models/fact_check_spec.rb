@@ -10,6 +10,15 @@ RSpec.describe FactCheck, type: :model do
   describe 'associations' do
     it { is_expected.to belong_to(:veredict) }
     it { is_expected.to belong_to(:publication_date).optional }
+
+    it { is_expected.to have_many(:fact_check_topics).dependent(:destroy) }
+    it { is_expected.to have_many(:topics).through(:fact_check_topics) }
+
+    it { is_expected.to have_many(:fact_check_actors).dependent(:destroy) }
+    it { is_expected.to have_many(:actors).through(:fact_check_actors) }
+
+    it { is_expected.to have_many(:fact_check_disseminators).dependent(:destroy) }
+    it { is_expected.to have_many(:disseminators).through(:fact_check_disseminators) }
   end
 
   describe 'scopes' do

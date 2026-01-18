@@ -10,9 +10,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_29_194910) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_01_154902) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "actor_roles", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_actor_roles_on_name", unique: true
+  end
+
+  create_table "actor_types", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_actor_types_on_name", unique: true
+  end
+
+  create_table "actors", force: :cascade do |t|
+    t.bigint "actor_type_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["actor_type_id"], name: "index_actors_on_actor_type_id"
+    t.index ["name"], name: "index_actors_on_name"
+  end
 
   create_table "delayed_jobs", force: :cascade do |t|
     t.integer "attempts", default: 0, null: false
@@ -27,6 +50,54 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_194910) do
     t.datetime "run_at"
     t.datetime "updated_at"
     t.index ["priority", "run_at"], name: "delayed_jobs_priority"
+  end
+
+  create_table "disseminator_urls", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "disseminator_id", null: false
+    t.datetime "updated_at", null: false
+    t.string "url"
+    t.index ["disseminator_id"], name: "index_disseminator_urls_on_disseminator_id"
+  end
+
+  create_table "disseminators", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.bigint "platform_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["platform_id"], name: "index_disseminators_on_platform_id"
+  end
+
+  create_table "fact_check_actors", force: :cascade do |t|
+    t.bigint "actor_id", null: false
+    t.bigint "actor_role_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "fact_check_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["actor_id"], name: "index_fact_check_actors_on_actor_id"
+    t.index ["actor_role_id"], name: "index_fact_check_actors_on_actor_role_id"
+    t.index ["fact_check_id", "actor_id", "actor_role_id"], name: "index_fact_check_actors_on_fact_check_actor_role", unique: true
+    t.index ["fact_check_id"], name: "index_fact_check_actors_on_fact_check_id"
+  end
+
+  create_table "fact_check_disseminators", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "disseminator_id", null: false
+    t.bigint "fact_check_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["disseminator_id"], name: "index_fact_check_disseminators_on_disseminator_id"
+    t.index ["fact_check_id", "disseminator_id"], name: "idx_on_fact_check_id_disseminator_id_fd1ebfa4a8", unique: true
+    t.index ["fact_check_id"], name: "index_fact_check_disseminators_on_fact_check_id"
+  end
+
+  create_table "fact_check_topics", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "fact_check_id", null: false
+    t.bigint "topic_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fact_check_id", "topic_id"], name: "index_fact_check_topics_on_fact_check_id_and_topic_id", unique: true
+    t.index ["fact_check_id"], name: "index_fact_check_topics_on_fact_check_id"
+    t.index ["topic_id"], name: "index_fact_check_topics_on_topic_id"
   end
 
   create_table "fact_check_urls", force: :cascade do |t|
@@ -56,6 +127,13 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_194910) do
     t.index ["veredict_id"], name: "index_fact_checks_on_veredict_id"
   end
 
+  create_table "platforms", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_platforms_on_name", unique: true
+  end
+
   create_table "publication_dates", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "date"
@@ -65,6 +143,13 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_194910) do
     t.index ["value"], name: "index_publication_dates_on_value"
   end
 
+  create_table "topics", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_topics_on_name", unique: true
+  end
+
   create_table "veredicts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
@@ -72,6 +157,16 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_194910) do
     t.index ["name"], name: "index_veredicts_on_name", unique: true
   end
 
+  add_foreign_key "actors", "actor_types"
+  add_foreign_key "disseminator_urls", "disseminators"
+  add_foreign_key "disseminators", "platforms"
+  add_foreign_key "fact_check_actors", "actor_roles"
+  add_foreign_key "fact_check_actors", "actors"
+  add_foreign_key "fact_check_actors", "fact_checks"
+  add_foreign_key "fact_check_disseminators", "disseminators"
+  add_foreign_key "fact_check_disseminators", "fact_checks"
+  add_foreign_key "fact_check_topics", "fact_checks"
+  add_foreign_key "fact_check_topics", "topics"
   add_foreign_key "fact_checks", "publication_dates"
   add_foreign_key "fact_checks", "veredicts"
 end

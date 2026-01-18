@@ -25,7 +25,7 @@ This is a **fact-checking scraper project** designed to collect and document fac
 
 ## Project Status
 
-**Current State**: Full scraping, AI-powered date parsing, and related entities infrastructure complete
+**Current State**: Full scraping, AI-powered date parsing, related entities infrastructure, and Phase 1 AI entity extraction complete
 - ✅ Fresh Rails 8.1 application initialized
 - ✅ Delayed Job installed and configured
 - ✅ Database created and migrated
@@ -54,13 +54,17 @@ This is a **fact-checking scraper project** designed to collect and document fac
   - ScrapeColombiaCheckJob (7 tests)
   - MineFactCheckUrlJob (10 tests)
   - ProcessPublicationDatesJob (7 tests)
+  - ExtractEntitiesJob (8 tests)
 - ✅ Services:
   - FactCheck::CreationService (20 tests)
+  - FactCheck::AssociateEntitiesService (15 tests)
   - PublicationDates::ParseDateService (11 tests)
+  - Ai::ExtractEntitiesService (11 tests)
 - ✅ OpenAI integration:
   - Openai::Client wrapper (11 tests)
   - AI-powered date parsing with timezone conversion
-- ✅ **Total: 265 passing tests**
+  - AI-powered entity extraction (topics, actors, disseminators)
+- ✅ **Total: 299 passing tests**
 - Current branch: `add-other-tables`
 
 **First Target**: https://colombiacheck.com/
@@ -92,7 +96,7 @@ This is a **fact-checking scraper project** designed to collect and document fac
 
 - **FactCheck** ✅
   - Main model storing individual fact-check articles
-  - Fields: source_url (unique, indexed), title, reasoning, digested (boolean), digested_at
+  - Fields: source_url (unique, indexed), title, reasoning, digested (boolean), digested_at, ai_enriched (boolean, default false, indexed), ai_enriched_at (datetime)
   - Associations:
     - belongs_to :veredict (required)
     - belongs_to :publication_date (optional)
@@ -101,6 +105,7 @@ This is a **fact-checking scraper project** designed to collect and document fac
     - has_many :disseminators (through :fact_check_disseminators)
   - Scopes: `undigested`, `digested`, `by_veredict`, `by_publication_date`
   - Methods: `mark_as_digested!`
+  - AI enrichment: Topics, actors, and disseminators are extracted via OpenAI
 
 - **Veredict** ✅
   - Standardized verdict types (FALSO, VERDADERO, CUESTIONABLE, etc.)
@@ -151,7 +156,11 @@ This is a **fact-checking scraper project** designed to collect and document fac
 
 **Junction Tables:**
 - **FactCheckTopic** ✅ - Links fact_checks to topics (many-to-many)
+  - Fields: fact_check_id (FK), topic_id (FK), confidence (float, default 1.0)
+  - Confidence score represents AI's certainty about the topic relevance (0.0 to 1.0)
 - **FactCheckActor** ✅ - Links fact_checks to actors with roles (many-to-many with role context)
+  - Fields: fact_check_id (FK), actor_id (FK), actor_role_id (FK), title (string), description (text)
+  - Title and description provide context about the actor's involvement in the fact-check
 - **FactCheckDisseminator** ✅ - Links fact_checks to disseminators (many-to-many)
 
 ### Scraping Architecture
@@ -189,12 +198,31 @@ This is a **fact-checking scraper project** designed to collect and document fac
   - Methods: `build`, `save!`
   - Handles creation or lookup of Veredict and PublicationDate records
 
+- **`FactCheck::AssociateEntitiesService`** - Associates extracted entities with FactCheck
+  - Takes FactCheck and entities hash (from AI extraction)
+  - Creates/finds Topics and associates with confidence scores
+  - Creates/finds Actors with ActorTypes and ActorRoles, associates with metadata
+  - Creates/finds Disseminators with Platforms and DisseminatorUrls
+  - Normalizes entity types, roles, and platform names for consistency
+  - Marks FactCheck as ai_enriched
+  - All operations in a transaction
+
 **PublicationDates Services** (`app/services/publication_dates/`) ✅:
 - **`PublicationDates::ParseDateService`** - AI-powered date parsing
   - Uses OpenAI to parse date strings from Colombia/Bogota timezone to UTC
   - Validates parsed dates (year range 1900-2100)
   - Updates PublicationDate.value field
   - Error class: `ParseDateError`
+
+**AI Services** (`app/services/ai/`) ✅:
+- **`Ai::ExtractEntitiesService`** - AI-powered entity extraction from FactCheck content
+  - Extracts topics with confidence scores (2-5 topics per fact-check)
+  - Extracts actors with type, role, title, and description
+  - Extracts disseminators with platform, name, and URLs
+  - Uses OpenAI (gpt-4o-mini) with structured JSON prompts
+  - Temperature: 0.3 for consistent extraction
+  - Cost: ~$0.0008 per FactCheck
+  - Error class: `Ai::Errors::ParseError`
 
 ### OpenAI Integration
 
@@ -229,6 +257,15 @@ All jobs use ActiveJob with Delayed Job backend and implement self-re-enqueueing
   - On no dates: re-enqueues in 1 week
   - Retry mechanism: 3 attempts, 5 minute wait
 
+- **`ExtractEntitiesJob`** - Extracts entities from FactChecks using OpenAI
+  - Fetches first FactCheck with ai_enriched = false
+  - Calls Ai::ExtractEntitiesService to extract topics, actors, disseminators
+  - Calls FactCheck::AssociateEntitiesService to create associations
+  - Re-enqueues itself immediately if more FactChecks exist
+  - On no FactChecks: re-enqueues in 1 week
+  - Retry mechanism: 3 attempts, 5 minute wait
+  - Cost: ~$0.0008 per FactCheck
+
 ### Rake Tasks ✅
 
 All tasks enqueue background jobs:
@@ -246,10 +283,17 @@ All tasks enqueue background jobs:
   - Job processes all PublicationDates with nil value
   - Requires OPENAI_API_KEY environment variable
 
+- **`rake ai:extract_entities`** - Starts AI entity extraction
+  - Enqueues ExtractEntitiesJob
+  - Job processes all FactChecks where ai_enriched = false
+  - Extracts topics, actors, and disseminators using OpenAI
+  - Requires OPENAI_API_KEY environment variable
+  - Estimated cost: ~$0.0008 per FactCheck
+
 ## Environment Variables
 
 Required environment variables:
-- **`OPENAI_API_KEY`** - OpenAI API key for date parsing (required for ProcessPublicationDatesJob)
+- **`OPENAI_API_KEY`** - OpenAI API key for AI-powered features (required for ProcessPublicationDatesJob and ExtractEntitiesJob)
 
 Create a `.env` file in the project root:
 ```bash
@@ -325,12 +369,21 @@ bin/delayed_job start
    - Updates PublicationDate.value fields
    - Job processes all nil values automatically
 
+4. **Extract entities with AI**: `rake ai:extract_entities`
+   - Extracts topics, actors, and disseminators using OpenAI
+   - Creates associations with FactCheck records
+   - Populates Topic, Actor, ActorType, ActorRole, Disseminator, Platform models
+   - Job processes all FactChecks where ai_enriched = false
+   - Cost: ~$0.0008 per FactCheck
+
 ### Monitoring
 - Check Delayed Job queue: `rails console` → `Delayed::Job.count`
 - Check processing status:
   - `FactCheckUrl.undigested.count` - URLs pending processing
   - `FactCheck.count` - Total fact-checks scraped
   - `PublicationDate.where(value: nil).count` - Dates pending AI parsing
+  - `FactCheck.where(ai_enriched: false).count` - FactChecks pending AI entity extraction
+  - `Topic.count`, `Actor.count`, `Disseminator.count` - Extracted entities
 
 ## Future Considerations
 
@@ -340,7 +393,10 @@ bin/delayed_job start
 - GraphQL API for flexible querying
 - Data export functionality (JSON, CSV)
 - Scheduled/automated scraping (cron or scheduled jobs)
-- Content analysis using AI (claim extraction, sentiment analysis)
+- AI-powered claim extraction (Phase 2 - extract specific false/true statements)
+- AI-powered sentiment analysis for actors (Phase 3)
+- AI-generated summaries for fact-checks (Phase 3)
+- Vector embeddings and semantic search (pgvector)
 - Duplicate detection and deduplication
 
 ## Git Workflow

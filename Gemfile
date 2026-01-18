@@ -54,7 +54,7 @@ group :development, :test do
   gem "dotenv-rails"
 
   # RSpec testing framework
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
 
   # Factory Bot for test data
   gem "factory_bot_rails"
@@ -74,7 +74,7 @@ group :test do
   gem "faker"
 
   # Shoulda Matchers for cleaner model specs
-  gem "shoulda-matchers", "~> 6.0"
+  gem "shoulda-matchers", "~> 7.0"
 
   # Timecop for time travel in tests
   gem "timecop"

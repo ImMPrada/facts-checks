@@ -1,3 +1,29 @@
+# MineFactCheckUrlJob
+#
+# Processes undigested FactCheckUrl records by scraping full article content
+# and creating FactCheck records with associated data.
+#
+# WORKFLOW:
+#   1. Fetches first undigested FactCheckUrl
+#   2. Scrapes article content (title, verdict, reasoning, publication date)
+#   3. Creates FactCheck record with Veredict and PublicationDate
+#   4. Marks FactCheckUrl as digested
+#   5. Self-re-enqueues with 10-20 second delay
+#   6. If no URLs found: re-enqueues in 1 week
+#
+# TRIGGER:
+#   - Manually via: `rails scraping:mine_fact_check_urls`
+#   - Automatically: self-re-enqueues after each URL processed
+#
+# ERROR HANDLING:
+#   - On failure: marks URL as failed, increments attempts counter
+#   - Stores error message in FactCheckUrl.last_error
+#   - Continues to next URL (re-enqueues immediately)
+#
+# DEPENDENCIES:
+#   - Scraping::ColombiaCheckScraperService
+#   - FactCheck::CreationService
+#   - FactCheckUrl, FactCheck, Veredict, PublicationDate models
 class MineFactCheckUrlJob < ApplicationJob
   queue_as :default
 

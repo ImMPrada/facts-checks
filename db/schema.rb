@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_01_154902) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_18_184309) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -72,7 +72,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_154902) do
     t.bigint "actor_id", null: false
     t.bigint "actor_role_id", null: false
     t.datetime "created_at", null: false
+    t.text "description"
     t.bigint "fact_check_id", null: false
+    t.string "title"
     t.datetime "updated_at", null: false
     t.index ["actor_id"], name: "index_fact_check_actors_on_actor_id"
     t.index ["actor_role_id"], name: "index_fact_check_actors_on_actor_role_id"
@@ -91,6 +93,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_154902) do
   end
 
   create_table "fact_check_topics", force: :cascade do |t|
+    t.float "confidence", default: 1.0
     t.datetime "created_at", null: false
     t.bigint "fact_check_id", null: false
     t.bigint "topic_id", null: false
@@ -115,6 +118,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_154902) do
   end
 
   create_table "fact_checks", force: :cascade do |t|
+    t.boolean "ai_enriched", default: false
+    t.datetime "ai_enriched_at"
     t.datetime "created_at", null: false
     t.boolean "digested", default: false
     t.bigint "publication_date_id"
@@ -123,6 +128,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_01_154902) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "veredict_id", null: false
+    t.index ["ai_enriched"], name: "index_fact_checks_on_ai_enriched"
     t.index ["publication_date_id"], name: "index_fact_checks_on_publication_date_id"
     t.index ["veredict_id"], name: "index_fact_checks_on_veredict_id"
   end
